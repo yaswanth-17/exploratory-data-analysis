@@ -1,47 +1,29 @@
-# libraries
-require(utils)
-require(cairoDevice) # anti-aliasing figure
-# download, load data and subset
-fileUrl <-
-'https://d396qusza40orc.cloudfront.net/exdata%2Fdata
-%2FNEI_data.zip'
-download.file(fileUrl,
-destfile = './Data.zip',
-method = 'curl', quiet = T)
-if(file.exists('./Data.zip')) {
-# Extract data file
-unzip('./Data.zip')
-# Delete original Zip file if it exists
-invisible(file.remove('./Data.zip'))
-}
-## This first line will likely take a few seconds. Be
-patient!
-NEI <- readRDS("summarySCC_PM25.rds")
-SCC <- readRDS("Source_Classification_Code.rds")
-# Delete data files .rds
-if(all(file.exists('./summarySCC_PM25.rds',
-'Source_Classification_Code.rds'))) {
-invisible(file.remove('./summarySCC_PM25.rds',
-'Source_Classification_Code.rds'))
-}
-# Create the png
-png('./plot3.png', width = 700, height = 370,
-res = 75, type = 'cairo') # default is 480px X 480px
-# subset data
-NEI_Baltimore <- subset(NEI, fips == "24510")
-# Make Plot
-NEI_Baltimore %>%
-group_by(year, type) %>%
-summarise(sum = sum(Emissions)) %>%
-ggplot(aes(year, sum)) +
-geom_point() + geom_line() +
-facet_wrap(~type, ncol = 4) +
-labs(title = 'Total PM2.5 Emission by Year in Baltimore
-City',
-subtitle = 'Subsetted by Type of Source') +
-xlab('') + ylab('Total PM2.5 Emission (tons)') +
-scale_x_continuous(breaks =
-unique(NEI_Baltimore$year)) +
-theme_bw()
-# Close png file
+temp <- tempfile()
+download.file("https://d396qusza40orc.cloudfront.net/exdata%2Fdata%2Fhousehold_power_consumption.zip",temp)
+power <- read.table(unz(temp,"household_power_consumption.txt"), 
+                    sep=";", 
+                    header = T, 
+                    na="?", 
+                    colClasses = c("character",
+                                   'character',
+                                   'numeric',
+                                   'numeric',
+                                   'numeric',
+                                   'numeric',
+                                   'numeric',
+                                   'numeric',
+                                   'numeric'))
+
+unlink(temp)
+power <- power[which(power$Date == '2/2/2007' | power$Date=='1/2/2007'),]
+
+power$POSIX <-as.POSIXlt.character(paste(power$Date,power$Time),format = "%d/%m/%Y %H:%M:%S")
+
+
+#plot3
+png(filename="plot3.png",width=480, height=480)
+plot(x=power$POSIX,y=power$Sub_metering_1, type='l', col = 'black', ylab = 'Energy sub metering', xlab = '')
+lines(x=power$POSIX,y=power$Sub_metering_2, col='red')
+lines(x=power$POSIX,y=power$Sub_metering_3, col='blue')
+legend('topright', legend = c('Sub_metering_1',"Sub_metering_2","Sub_metering_3"), col = c('black','red','blue'), lty = 1)
 dev.off()
