@@ -22,4 +22,4 @@ power$POSIX <-as.POSIXlt.character(paste(power$Date,power$Time),format = "%d/%m/
 #plot2
 png(filename="plot2.png",width=480, height=480)
 plot(x=power$POSIX ,y=power$Global_active_power, type = 'l', xlab='',ylab = 'Global Active Power (kilowatts)')
-dev.off(
+dev.off()
